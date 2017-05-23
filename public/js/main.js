@@ -13,4 +13,17 @@ Function getURLParameters(whichParam)
     }
   }
 
-$('#messages').append('<h4>'+getURLParameters('username')+'</h4>');
+  var username = getURLParameters('username');
+  if ('undefined' == typeof username || !username) {
+    username = 'Anonymous_'+Math.random();
+  }
+
+$('#messages').append('<h4>'+username+'</h4>');
+
+
+/* Connect to the socket server */
+var scoket = io.connect();
+
+socket.on('log',function(array) {
+  console.log.apply(console,array);
+});
