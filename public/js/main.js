@@ -1,7 +1,7 @@
 /* functions for general use */
 
 /* This function returns the value associated with 'whichParam' on the URL*/
-Function getURLParameters (whichParam)
+Function getURLParameters(whichParam)
 {
   var pageURL = window.location.search.substring(1);
   var pageURLVariables = pageURL.split('&');
@@ -9,6 +9,7 @@ Function getURLParameters (whichParam)
     var parameterName = pageURLVariables[i].split('=');
     if(parameterName[0] == whichParam) {
       return parameterName[1];
+      }
     }
   }
 
