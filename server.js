@@ -33,7 +33,7 @@ console.log('The server is running');
 /**********************************/
 /*       Set u the web socket server */
 
-var io - require('socket.io').listen(app);
+var io = require('socket.io').listen(app);
 
 io.sockets.on('connection', function (socket) {
   function log() {
@@ -49,5 +49,5 @@ io.sockets.on('connection', function (socket) {
 
  socket.on('disconnect',function(socket) {
    log('A web site disconnected from the server');
- });
+    });
  });
