@@ -35,14 +35,14 @@ console.log('The server is running');
 
 var io - require('socket.io').listen(app);
 
-io.sockets.on('connection',function (socket) {
+io.sockets.on('connection', function (socket) {
   function log() {
-    var array = ['*** Server Log Message:'];
+    var array = ['*** Server Log Message: '];
     for(var i = 0; i < argument.length; i++) {
       array.push(arguments[i]);
       console.log(arguments[i]);
     }
-   socket.emit('log',array);
+   socket.emit('log',array); {
    socket.broadcast.emit('log',array);
  }
     log('A web site connected to the server');
