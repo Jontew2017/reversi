@@ -2,7 +2,7 @@
 
 /* This function returns the value associated with 'whichParam' on the URL*/
 
-Function getURLParameters(whichParam)
+function getURLParameters(whichParam)
 {
   var pageURL = window.location.search.substring(1);
   var pageURLVariables = pageURL.split('&');

@@ -38,7 +38,7 @@ var io = require('socket.io').listen(app);
 io.sockets.on('connection', function (socket) {
   function log() {
     var array = ['*** Server Log Message: '];
-    for(var i = 0; i < argument.length; i++) {
+    for(var i = 0; i < arguments.length; i++) {
       array.push(arguments[i]);
       console.log(arguments[i]);
     }
