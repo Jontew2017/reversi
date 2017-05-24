@@ -42,7 +42,7 @@ io.sockets.on('connection', function (socket) {
       array.push(arguments[i]);
       console.log(arguments[i]);
     }
-   socket.emit('log',array); {
+   socket.emit('log',array);
    socket.broadcast.emit('log',array);
  }
     log('A web site connected to the server');
