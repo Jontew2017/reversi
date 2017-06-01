@@ -26,7 +26,6 @@ function getURLParameters(whichParam)
       chat_room = 'lobby';
   }
 
-
 /* Connect to the socket server */
 var socket = io.connect();
 /* what to do when the server sends me a log message*/
@@ -36,7 +35,6 @@ socket.on('log',function(array) {
 
 /* what to do when the server responds that someone joined a room*/
 socket.on('join_room_response',function(payload) {
-  console.log("here");
   if(payload.result == 'fail'){
     alert(payload.message);
     return;
@@ -62,7 +60,7 @@ nodeC.addClass('socket_'+payload.socket_id);
 nodeA.addClass('w-100');
 
 nodeB.addClass('col-9 text-right');
-nodeB.append('<h4>'+payload.username+'</h4>')
+nodeB.append('<h4>'+payload.username+'</h4>');
 
 nodeC.addClass('cold-3 text-left');
 var buttonC = makeInviteButton();
@@ -71,7 +69,7 @@ nodeC.append(buttonC);
 nodeA.hide();
 nodeB.hide();
 nodeC.hide();
-$('players').append(nodeA,nodeB,nodeC);
+$('#players').append(nodeA,nodeB,nodeC);
 nodeA.slideDown(1000);
 nodeB.slideDown(1000);
 nodeC.slideDown(1000);
@@ -82,8 +80,17 @@ $('.socket_'+payload.socket_id+'button').replaceWith(buttonC);
 dom_elements.slideDown(1000);
 }
 
+/* Manage the message that a new player has joined */
+var newHTML = '<p>'+payload.username+' just entered the lobby</p>';
+var newNode = $(newHTML);
+newNode.hide();
+$('#messages').append(newNode);
+newNode.slideDown(1000);
+});
+
+
 /* what to do when the server says that someone has left a room*/
-socket.on('join_room_response',function(payload) {
+socket.on('player_disconnected',function(payload) {
   if(payload.result == 'fail'){
     alert(payload.message);
     return;
@@ -100,16 +107,8 @@ if(dom_elements.length != 0) {
   dom_elements.slideUp(1000);
 }
 
-/* Manage the message that a new player has left */
-var newHTML = '<p>'+payload.username+' just left the lobby</p>';
-var newNode = $(newHTML);
-newNode.hide();
-$('#messages').append(newNode);
-newNode.slideDown(1000);
-});
-
-/* Manage the message that a new player has joined */
-var newHTML = '<p>'+payload.username+' just entered the lobby</p>';
+/* Manage the message that a player has left */
+var newHTML = '<p>'+payload.username+' has left the lobby</p>';
 var newNode = $(newHTML);
 newNode.hide();
 $('#messages').append(newNode);
