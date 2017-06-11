@@ -205,7 +205,7 @@ socket.on('send_message',function(payload) {
                                            });
         return;
       }
-      var username = payload.username;
+      var username = players[socket.id].username;
       if(('undefined' === typeof username) || !username){
         var error_message = 'send_message didn\'t specify a username, command aborted';
         log(error_message);
@@ -217,7 +217,7 @@ socket.on('send_message',function(payload) {
         }
         var message = payload.message;
         if(('undefined' === typeof message) || !message){
-          var error_message = 'send_message didn\'t specify a username, command aborted';
+          var error_message = 'send_message didn\'t specify a message, command aborted';
           log(error_message);
             socket.emit('send_message_response',   {
                                                  result: 'fail',
@@ -732,4 +732,32 @@ socket.on('send_message',function(payload) {
         };
         io.in(game_id).emit('game_update',success_data);
         /* Check to see if the game is over */
-      }
+
+        var row,column;
+        var count = 0;
+        for(row = 0; row < 8;row++) {
+        for(column = 0; column < 8;column++) {
+          if(games[game_id].board[row][column] != ' '){
+            count++;
+          }
+       }
+    }
+
+    if(count == 64) {
+      /* Send a game over message */
+      var success_data = {
+        result:'success',
+        game: games[game_id],
+        who_won: 'everyone',
+        game_id: game_id
+      };
+      io.in(game_id).emit('game_over', success_data);
+
+      /* Delete old games after 1 hour */
+      setTimeout(function(id){
+        return function(){
+          delete games[id];
+        }}(game_id)
+        ,60*60*1000);
+    }
+  }
