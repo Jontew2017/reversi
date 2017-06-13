@@ -313,6 +313,7 @@ if(socket.id == payload.game.player_white.socket) {
 }
 
 $('#my_color').html('<h3 id="my_color">I am '+my_color+'</h3>');
+$('#my_color').append('<h4>It is '+payload.game.whose_turn+'\'s turn</h4>');
 
 /* Animate changes to the board */
 
@@ -360,10 +361,13 @@ if(board[row][column] == 'w') {
     else{
       $('#'+row+'_'+column).html('<img src="assets/images/error.gif" alt="error square"/>');
     }
+  }
+  /* Set up interactivity */
+  $('#'+row+'_'+column).off('click');
+  $('#'+row+'_'+column).removeClass('hovered_over');
 
-    /* Set up interactivity */
-    $('#'+row+'_'+column).off('click');
-    if(board[row][column] == ' '){
+  if(payload.game.whose_turn === my_color){
+    if(payload.game.legal_moves[row][column] === my_color.substr(0,1)) {
       $('#'+row+'_'+column).addClass('hovered_over');
       $('#'+row+'_'+column).click(function(r,c){
         return function(){
@@ -376,14 +380,11 @@ if(board[row][column] == 'w') {
         };
       }(row,column));
     }
-    else {
-      $('#'+row+'_'+column).removeClass('hovered_over');
-    }
   }
   }
 }
-$('#blacksum').html(blacksum)
-$('#whitesum').html(whitesum)
+$('#blacksum').html(blacksum);
+$('#whitesum').html(whitesum);
 
 old_board = board;
 });

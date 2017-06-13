@@ -603,17 +603,42 @@ socket.on('send_message',function(payload) {
                                                 return;
                                               }
 
+                                              /*Get game state */
                                               var game = games[game_id];
                                               if(('undefined' === typeof game) || !game){
                                                 var error_message = 'play_token couldn\'t find your game board';
                                                 log(error_message);
-                                                  socket.emit('play_token_response',   {
+                                                socket.emit('play_token_response',   {
                                                                                        result: 'fail',
                                                                                        message: error_message
                                                                                      });
                                                   return;
                                                 }
 
+                                                /* If the current attempt at playing a token is out of turn then error*/
+                                                if(color !== game.whose_turn){
+                                                  var error_message = 'play_token message played out of turn';
+                                                  log(error_message);
+                                                  socket.emit('play_token_response',   {
+                                                                                         result: 'fail',
+                                                                                         message: error_message
+                                                                                       });
+                                                  return
+                                                }
+                                                /* If the wrong socket is playing the color */
+                                                if( ((game.whose_turn === 'white') && (game.player_white.socket != socket.id)) ||
+                                                    ((game.whose_turn === 'black') && (game.player_black.socket != socket.id))){
+
+                                                  var error_message = 'play_token turn played by wrong player';
+                                                  log(error_message);
+                                                  socket.emit('play_token_response',   {
+                                                                                         result: 'fail',
+                                                                                         message: error_message
+                                                                                       });
+                                                  return
+                                                }
+
+                                                /*Send response*/
                                                 var success_data = {
                                                   result: 'success'
                                                 };
@@ -623,14 +648,18 @@ socket.on('send_message',function(payload) {
                                                 if(color == 'white'){
                                                   game.board[row][column] = 'w';
                                                   game.whose_turn = 'black';
+                                                  game.legal_moves = calculate_valid_moves('b',game.board);
                                                 }
                                                 else if(color == 'black'){
                                                   game.board[row][column] = 'b';
                                                   game.whose_turn = 'white';
+                                                  game.legal_moves = calculate_valid_moves('w',game.board);
                                                 }
 
                                                 var d = new Date();
                                                 game.last_move_time = d.getTime();
+
+                                                /*Update everyone with the new board state */
                                                 send_game_update(socket,game_id,'played a token');
                                               });
       });
@@ -651,7 +680,7 @@ socket.on('send_message',function(payload) {
         var d = new Date();
         new_game.last_move_time = d.getTime();
 
-        new_game.whose_turn = 'white';
+        new_game.whose_turn = 'black';
 
         new_game.board = [
           [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
@@ -663,11 +692,101 @@ socket.on('send_message',function(payload) {
           [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
           [ ' ',' ', ' ', ' ',' ',' ',' ',' ']
         ];
+        new_game.legal_moves = calculate_valid_moves('b',new_game.board);
         return new_game;
       }
 
+      /* Check if there is a color 'who' on the line starting at (r'c) or
+      * anyWhere further by adding dr and dc to (r'c) */
+      function check_line_match(who,dr,dc,r,c,board){
 
-      function send_game_update(socket, game_id, message) {
+      if(board[r][c] === who){
+          return true;
+      }
+      if(board[r][c] === ' '){
+          return false;
+      }
+
+
+      if((r+dr < 0) || (r+dr > 7 ) ){
+      return false;
+      }
+      if((c+dc < 0) || (c+dc > 7 ) ){
+      return false;
+      }
+      return check_line_match(who,dr,dc,r+dr,c+dc,board);
+      }
+
+      /* Check if the position at r,c contains the opposite of 'who' on the board
+      * and if the line indicated by adding dr to r and dc to c eventually ends in
+      * the who color */
+
+      function valid_move(who,dr,dc,r,c,board){
+        var other;
+        if(who === 'b'){
+          other = 'w';
+      }
+      else if(who === 'w') {
+        other = 'b';
+      }
+      else{
+        log('Houston we have color problem: '+who);
+        return false;
+}
+if( (r+dr < 0) || (r+dr > 7 )  ){
+  return false;
+}
+if( (c+dc < 0) || (c+dc > 7 )  ){
+  return false;
+}
+if(board[r+dr][c+dc] != other){
+  return false;
+}
+if( (r+dr+dr < 0) || (r+dr+dr > 7 )  ){
+  return false;
+}
+if( (c+dc+dc < 0) || (c+dc+dc > 7 )  ){
+  return false;
+}
+return check_line_match(who,dr,dc,r+dr+dr,c+dc+dc,board);
+}
+      function calculate_valid_moves(who,board){
+        var valid = [
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' '],
+          [ ' ',' ', ' ', ' ',' ',' ',' ',' ']
+        ];
+
+        for(var row = 0; row < 8;row++){
+          for(var column = 0; column < 8;column++){
+            if(board[row][column] === ' '){
+               nw = valid_move(who,-1,-1,row,column,board);
+               nn = valid_move(who,-1, 0,row,column,board);
+               ne = valid_move(who,-1, 1,row,column,board);
+
+               ww = valid_move(who, 0,-1,row,column,board);
+               ee = valid_move(who, 0, 1,row,column,board);
+
+               sw = valid_move(who, 1,-1,row,column,board);
+               ss = valid_move(who, 1, 0,row,column,board);
+               se = valid_move(who, 1, 1,row,column,board);
+
+               if( nw || nn || ne || ww || ee || sw || ss || se){
+                 valid[row][column] = who;
+               }
+            }
+         }
+      }
+      return valid;
+    }
+
+    function send_game_update(socket, game_id, message){
+
         /* Check to see if a game with game_id already exists*/
         if(('undefined' === typeof games[game_id]) || !games[game_id]) {
           /* No game exists, so make one */
